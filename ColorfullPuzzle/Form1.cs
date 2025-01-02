@@ -1,4 +1,8 @@
-﻿using System;
+﻿//Bacoro dit Elhadji Lansar
+//B211200567
+//Bilisim Sistemleri Muhendisligi
+//24-25-NDP-Ödev 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,11 +15,22 @@ using System.IO;
 
 namespace ColorfullPuzzle
 {
+    // Interface pour définir les actions communes
+    public interface IFormActions
+    {
+        //void OpenGameForm(string playerName);
+        void OpenHighScores();
+        void DisplayInfo();
+    }
     public partial class Form1 : Form
     {
         public Form1()
         {
             InitializeComponent();
+        }
+        public void ShowMessage(string message, string title = "Message", MessageBoxIcon icon = MessageBoxIcon.Information)
+        {
+            MessageBox.Show(message, title, MessageBoxButtons.OK, icon);
         }
 
         private void textbox_name_KeyDown(object sender, KeyEventArgs e)
@@ -43,10 +58,8 @@ namespace ColorfullPuzzle
                 }
             }
         }
-
-        private void HighScore_Click(object sender, EventArgs e)
+        public void OpenFile(string filePath)
         {
-            string filePath = "D:\\highScores.txt";
             try
             {
                 if (File.Exists(filePath))
@@ -55,13 +68,23 @@ namespace ColorfullPuzzle
                 }
                 else
                 {
-                    MessageBox.Show("High scores file not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowMessage("File not found.", "Error", MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error opening file: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowMessage("Error opening file: " + ex.Message, "Error", MessageBoxIcon.Error);
             }
+        }
+    
+       public void OpenHighScores()
+        {
+            string filePath = "D:\\highScores.txt";
+            OpenFile(filePath);
+        }
+        private void HighScore_Click(object sender, EventArgs e)
+        {
+            OpenHighScores();
         }
 
         private void infoButton_Click(object sender, EventArgs e)
@@ -70,3 +93,4 @@ namespace ColorfullPuzzle
         }
     }
 }
+

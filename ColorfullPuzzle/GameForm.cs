@@ -1,4 +1,10 @@
-﻿using System;
+﻿//Bacoro dit Elhadji Lansar
+//B211200567
+//Bilisim Sistemleri Muhendisligi
+//24-25-NDP-Ödev 
+
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -9,6 +15,11 @@ using System.IO;
 
 namespace ColorfullPuzzle
 {
+    public class HighScore
+    {
+        public string PlayerName { get; set; }
+        public int Score { get; set; }
+    }
     public partial class GameForm : Form
     {
         private const int GridSize = 8; // 8x8 grid
@@ -24,7 +35,7 @@ namespace ColorfullPuzzle
         private int selectedRow = 0;
         private int selectedCol = 0;
 
-        private static readonly Color[] MatchColors = { Color.Red, Color.Blue, Color.Green, Color.Yellow };
+        private static readonly Color[] MatchColors = { Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Purple, Color.Aqua };
         private static readonly Color JokerColor = Color.Black; // Joker tile color
 
         //joker images
@@ -37,18 +48,20 @@ namespace ColorfullPuzzle
          };
         private bool isPaused = false; // Variable to track the pause state
 
-          // high  scores
-        List<int> highScores = new List<int>();
-
+        // high  scores
+        
+        List<HighScore> highScores = new List<HighScore>();
+        private string currentPlayerName;
         // Le nom du fichier texte où les scores sont enregistrés
         private const string highScoresFile = "D:\\highScores.txt";
 
 
 
-
+       
         public GameForm(string playerName)
         {
             InitializeComponent();
+            currentPlayerName = playerName;
             InitializeGame(playerName);
             LoadHighScoresFromFile();
         }
@@ -122,9 +135,9 @@ namespace ColorfullPuzzle
 
             if (isJoker)
             {
-                // Choisir une image aléatoire pour la tuile Joker
                 string imagePath = JokerImages[random.Next(JokerImages.Length)];
                 tile.BackgroundImage = Image.FromFile(imagePath);
+                (tile.BackgroundImage as Bitmap).Tag = imagePath; // Store path for identification
                 tile.BackgroundImageLayout = ImageLayout.Stretch;
             }
             else
@@ -157,10 +170,41 @@ namespace ColorfullPuzzle
                 this.Close();
             }
         }
+        private async Task HandleJokerTile(Button tile)
+        {
+            string imagePath = tile.BackgroundImage != null ?
+                ((tile.BackgroundImage as Bitmap)?.Tag as string) ?? "" : "";
+
+            // Clear the joker tile first
+            if (tile.BackgroundImage != null)
+            {
+                tile.BackgroundImage.Dispose();
+                tile.BackgroundImage = null;
+                tile.BackColor = Color.Transparent;
+            }
+
+            // Execute effect based on saved image path
+            if (imagePath.Contains("roket"))
+                await HandleRocketEffect(tile);
+            else if (imagePath.Contains("bomb"))
+                await HandleBombEffect(tile);
+            else if (imagePath.Contains("helicopter"))
+                await HandleHelicopterEffect(tile);
+            else if (imagePath.Contains("discoball"))
+                await HandleDiscoballEffect(tile);
+
+            await Task.Delay(500);
+            ShiftTilesDown();
+        }
 
         private async void Tile_Click(object sender, EventArgs e)
         {
             Button clickedTile = sender as Button;
+            if (clickedTile.BackgroundImage != null)
+            {
+                 HandleJokerTile(clickedTile);
+                return;
+            }
 
             if (selectedTile == null)
             {
@@ -368,7 +412,6 @@ namespace ColorfullPuzzle
                 gameTimer.Start();
                 isPaused = false;
                 SetControlsEnabled(true);  // Réactiver les contrôles
-                MessageBox.Show("Game has started.", "Game start", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
@@ -376,7 +419,6 @@ namespace ColorfullPuzzle
                 gameTimer.Stop();
                 isPaused = true;
                 SetControlsEnabled(false);  // desactivate controlls
-                MessageBox.Show("Game paused. Click  on P for continuing.", "Game Stopped", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -458,22 +500,11 @@ namespace ColorfullPuzzle
             return null;
         }
 
-        // Ajouter un score à la liste et sauvegarder les scores dans le fichier
+        //add score to txt file
         public void AddScore(int score)
         {
-            // Ajouter le score à la liste
-            highScores.Add(score);
-
-            // Trier les scores par ordre décroissant
-            highScores.Sort((a, b) => b.CompareTo(a));
-
-            // Garder seulement les 5 meilleurs scores
-            if (highScores.Count > 5)
-            {
-                highScores.RemoveAt(highScores.Count - 1); // Supprimer le score le plus bas
-            }
-
-            // Sauvegarder les scores dans le fichier
+            highScores.Add(new HighScore { PlayerName = currentPlayerName, Score = score });
+            highScores = highScores.OrderByDescending(x => x.Score).Take(5).ToList();
             SaveHighScoresToFile();
         }
 
@@ -482,9 +513,9 @@ namespace ColorfullPuzzle
         {
             using (StreamWriter writer = new StreamWriter(highScoresFile))
             {
-                foreach (int score in highScores)
+                foreach (var score in highScores)
                 {
-                    writer.WriteLine(score);
+                    writer.WriteLine($"{score.PlayerName},{score.Score}");
                 }
             }
         }
@@ -499,24 +530,119 @@ namespace ColorfullPuzzle
                     string line;
                     while ((line = reader.ReadLine()) != null)
                     {
-                        highScores.Add(int.Parse(line));
+                        string[] parts = line.Split(',');
+                        if (parts.Length == 2)
+                        {
+                            highScores.Add(new HighScore
+                            {
+                                PlayerName = parts[0],
+                                Score = int.Parse(parts[1])
+                            });
+                        }
                     }
                 }
             }
         }
 
-        // Afficher les 5 meilleurs scores
+        // show 5 highscores
         public void ShowHighScores()
         {
             string highScoresText = "Top 5 Scores:\n";
-
             for (int i = 0; i < highScores.Count; i++)
             {
-                highScoresText += $"{i + 1}. {highScores[i]}\n";
+                highScoresText += $"{i + 1}. {highScores[i].PlayerName}: {highScores[i].Score}\n";
             }
-
-            Console.WriteLine(highScoresText);
+           // MessageBox.Show(highScoresText, "High Scores", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+    
+        private async Task HandleRocketEffect(Button tile)
+        {
+            Point pos = (Point)tile.Tag;
+            List<Button> tilesToRemove = new List<Button>();
+
+            // Random direction (horizontal or vertical)
+            bool horizontal = random.Next(2) == 0;
+
+            if (horizontal)
+            {
+                for (int col = 0; col < GridSize; col++)
+                    tilesToRemove.Add(tiles[pos.X, col]);
+            }
+            else
+            {
+                for (int row = 0; row < GridSize; row++)
+                    tilesToRemove.Add(tiles[row, pos.Y]);
+            }
+
+            await RemoveTilesAndUpdateScore(tilesToRemove);
+        }
+        // Bomb: Destroys a random object
+        private async Task HandleBombEffect(Button jokerTile)
+        {
+            int randomRow = random.Next(GridSize);
+            int randomCol = random.Next(GridSize);
+
+            List<Button> tilesToRemove = new List<Button> { tiles[randomRow, randomCol] };
+            await RemoveTilesAndUpdateScore(tilesToRemove);
+        }
+
+        // Helicopter: Destroys 8 surrounding neighbors
+        private async Task HandleHelicopterEffect(Button tile)
+        {
+            Point pos = (Point)tile.Tag;
+            List<Button> tilesToRemove = new List<Button>();
+
+            for (int i = -1; i <= 1; i++)
+            {
+                for (int j = -1; j <= 1; j++)
+                {
+                    int newRow = pos.X + i;
+                    int newCol = pos.Y + j;
+
+                    if (newRow >= 0 && newRow < GridSize &&
+                        newCol >= 0 && newCol < GridSize &&
+                        !(i == 0 && j == 0))
+                    {
+                        tilesToRemove.Add(tiles[newRow, newCol]);
+                    }
+                }
+            }
+
+            await RemoveTilesAndUpdateScore(tilesToRemove);
+        }
+        // Disco Ball: Destroys all objects of a random color
+        private async Task HandleDiscoballEffect(Button tile)
+        {
+            Color randomColor = MatchColors[random.Next(MatchColors.Length)];
+            List<Button> tilesToRemove = new List<Button>();
+
+            for (int row = 0; row < GridSize; row++)
+            {
+                for (int col = 0; col < GridSize; col++)
+                {
+                    if (tiles[row, col].BackColor == randomColor)
+                        tilesToRemove.Add(tiles[row, col]);
+                }
+            }
+
+            await RemoveTilesAndUpdateScore(tilesToRemove);
+        }
+        private async Task RemoveTilesAndUpdateScore(List<Button> tilesToRemove)
+        {
+            foreach (var tile in tilesToRemove)
+            {
+                if (tile.BackgroundImage != null)
+                {
+                    tile.BackgroundImage.Dispose();
+                    tile.BackgroundImage = null;
+                }
+                tile.BackColor = Color.Transparent;
+            }
+
+            await Task.Delay(500);
+            score += tilesToRemove.Count * 10;
+            score_label.Text = score.ToString();
+        }
     }
 }

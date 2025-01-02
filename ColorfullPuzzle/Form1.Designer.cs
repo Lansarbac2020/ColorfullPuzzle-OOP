@@ -80,7 +80,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(123, 291);
+            this.label3.Location = new System.Drawing.Point(113, 291);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(60, 26);
             this.label3.TabIndex = 8;
@@ -89,7 +89,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(123, 244);
+            this.label2.Location = new System.Drawing.Point(113, 244);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(133, 26);
             this.label2.TabIndex = 7;
@@ -120,7 +120,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(113, 191);
+            this.label1.Location = new System.Drawing.Point(102, 194);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(186, 26);
             this.label1.TabIndex = 4;
@@ -166,10 +166,11 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.InitialImage = ((System.Drawing.Image)(resources.GetObject("pictureBox1.InitialImage")));
-            this.pictureBox1.Location = new System.Drawing.Point(467, 101);
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.InitialImage = null;
+            this.pictureBox1.Location = new System.Drawing.Point(274, 63);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(59, 41);
+            this.pictureBox1.Size = new System.Drawing.Size(77, 75);
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
             // 
